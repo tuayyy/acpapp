@@ -20,13 +20,17 @@ const NavigationLayout = ({ children }) => {
   const router = useRouter();
   const appName = useBearStore((state) => state.appName);
 
+  if (router.pathname === '/') {
+    return <main>{children}</main>;
+  }
+
   return (
     <>
-      <AppBar position="sticky" sx={{ backgroundColor: "#ff5e15" }}>
+      <AppBar position="sticky" sx={{ backgroundColor: "rgba(255, 111, 105, 0.7)" }} >
         <Toolbar>
-          <Link href={"/"}>
-            <FunctionsIcon sx={{ color: "#ffffff" }} fontSize="large" />
-          </Link>
+          {/* <Link href={"/"}>
+            <FunctionsIcon sx={{ color: "#96ceb4" }} fontSize="large" />
+          </Link> */}
           <Typography
             variant="body1"
             sx={{
@@ -36,9 +40,10 @@ const NavigationLayout = ({ children }) => {
               padding: "0 10px",
               fontFamily: "Prompt",
             }}>
-            {appName}
+            {/* {appName} */}
           </Typography>
-          <NavigationLink href="/page1" label="Page1" />
+          <NavigationLink href="/Restaurant" label="Restaurant" />
+          <NavigationLink href="/test" label="test" />
           <div style={{ flexGrow: 1 }} />
           <Button
             color="#ffffff"
