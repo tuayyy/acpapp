@@ -11,9 +11,9 @@ import {
   ImageListItemBar,
   ListSubheader,
   IconButton,
+  Badge,
 } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info'; // Import InfoIcon
-import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket';
+import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket'; // Import Basket Icon
 
 // Define the styled Item component
 const Item = styled(Paper)(({ theme }) => ({
@@ -32,6 +32,19 @@ const Item = styled(Paper)(({ theme }) => ({
 export default function Kfc() {
   // State to keep track of the rating value
   const [rating, setRating] = useState(3); // Default rating set to 3
+
+  // State to keep track of the number of basket clicks
+  const [basketCount, setBasketCount] = useState(0);
+
+  // State to keep track of individual basket counts for each image item
+  const [itemBasketCounts, setItemBasketCounts] = useState(itemData.map(() => 0));
+
+  // Function to handle basket button click in ImageListItem
+  const handleBasketClick = (index) => {
+    const newCounts = [...itemBasketCounts];
+    newCounts[index] += 1;
+    setItemBasketCounts(newCounts);
+  };
 
   return (
     <Box
@@ -162,7 +175,7 @@ export default function Kfc() {
         <ImageListItem key="Subheader" cols={3} sx={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
           <ListSubheader component="div">Menu Gallery</ListSubheader>
         </ImageListItem>
-        {itemData.map((item) => (
+        {itemData.map((item, index) => (
           <ImageListItem key={item.img} sx={{ height: '200px' }}> {/* Set a fixed height for all items */}
             <img
               srcSet={`${item.img}?w=248&fit=crop&auto=format&dpr=2 2x`}
@@ -184,13 +197,28 @@ export default function Kfc() {
                   sx={{
                     backgroundColor: '#ffffff', // White background
                     borderRadius: '50%', // Make it circular
-                    width: '20px', // Fixed width
-                    height: '20px', // Fixed height
+                    width: '40px', // Fixed width
+                    height: '40px', // Fixed height
                     '&:hover': { backgroundColor: '#e0e0e0' }, // Slight hover effect
                   }}
-                  aria-label={`info about ${item.title || 'KFC Item'}`}
+                  aria-label={`Add to basket ${item.title || 'KFC Item'}`}
+                  onClick={() => handleBasketClick(index)} // Handle basket click for each item
                 >
-                  <ShoppingBasketIcon sx={{ color: 'black' }} /> {/* Set the icon color to black */}
+                  <Badge
+                    badgeContent={itemBasketCounts[index]}
+                    color="error" // Color of the badge
+                    overlap="circular" // Make the badge circular
+                    sx={{
+                      '& .MuiBadge-badge': {
+                        right: -3,
+                        top: 13,
+                        border: `2px solid #fff`, // Optional: Add a white border to the badge
+                        padding: '0 4px',
+                      },
+                    }}
+                  >
+                    <ShoppingBasketIcon sx={{ color: 'black' }} /> {/* Set the icon color to black */}
+                  </Badge>
                 </IconButton>
               }
             />
@@ -204,17 +232,17 @@ export default function Kfc() {
 const itemData = [
   {
     img: 'https://kfcbd.com/storage/products/k8kyCyznKk5bG75XFqUJXsNlO.jpg',
-    title: 'Fried Chicky Chick',
+    title: 'Chicken',
     price: '2000 dollars',
   },
   {
     img: 'https://www.kfc-suisse.ch/fileadmin/_processed_/c/a/csm_webseite_desktop-classic-original_538dd9e0dd.jpg',
-    title: 'Wopper Wopper Wopper',
+    title: 'Wopper',
     price: '69 dollars',
   },
   {
     img: 'https://media-cldnry.s-nbcnews.com/image/upload/newscms/2019_36/1478740/kfc_fries_international_main.jpg',
-    title: 'Fried Chicky Chick',
+    title: 'Fried Chick',
     price: '2000 dollars',
   },
   {
