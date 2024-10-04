@@ -20,37 +20,41 @@ export default function AuthPage() {
 
 
  const handleLoginSubmit = async (e) => {
-   e.preventDefault();
-   try {
-     const response = await fetch('/api/users/login', {
-       method: 'POST',
-       headers: {
-         'Content-Type': 'application/json',
-       },
-       body: JSON.stringify({
-         email: loginEmail,
-         password_hash: loginPassword,
-       }),
-     });
+  e.preventDefault();
+  try {
+    const response = await fetch('/api/users/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: loginEmail,
+        password_hash: loginPassword,
+      }),
+    });
 
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Login failed');
+    }
 
-     if (!response.ok) {
-       const errorData = await response.json();
-       throw new Error(errorData.detail || 'Login failed');
-     }
+    const data = await response.json();
+    setSnackbarMessage('Login successful!');
+    setSnackbarSeverity('success');
+    setOpenSnackbar(true);
 
+    // Store the logged-in user data in localStorage
+    localStorage.setItem('user', JSON.stringify({ email: data.email }));
 
-     const data = await response.json();
-     setSnackbarMessage('Login successful!');
-     setSnackbarSeverity('success');
-     setOpenSnackbar(true);
-     // Handle successful login (e.g., redirect)
-   } catch (error) {
-     setSnackbarMessage(error.message);
-     setSnackbarSeverity('error');
-     setOpenSnackbar(true);
-   }
- };
+    // Redirect to the Test page or update the UI accordingly
+    window.location.href = "/test"; // Assuming you want to navigate to the Test page after login
+  } catch (error) {
+    setSnackbarMessage(error.message);
+    setSnackbarSeverity('error');
+    setOpenSnackbar(true);
+  }
+};
+
 
 
  const handleRegisterSubmit = async (e) => {

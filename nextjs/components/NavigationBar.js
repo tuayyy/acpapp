@@ -4,33 +4,47 @@ import {
   Toolbar,
   Typography,
   Button,
-  Menu,
-  MenuItem,
   Box,
-  ListItemIcon,
 } from "@mui/material";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import FunctionsIcon from "@mui/icons-material/Functions";
-import Divider from "@mui/material/Divider";
 import PersonIcon from "@mui/icons-material/Person";
 import useBearStore from "@/store/useBearStore";
+import { useEffect, useState } from "react";
 
 const NavigationLayout = ({ children }) => {
   const router = useRouter();
   const appName = useBearStore((state) => state.appName);
 
-  if (router.pathname === '/') {
+  // State to store user email (if logged in)
+  const [userEmail, setUserEmail] = useState("");
+
+  // Retrieve user email from localStorage on component mount
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser && storedUser.email) {
+      setUserEmail(storedUser.email);
+    }
+  }, []);
+
+  // Function to handle logout
+  const handleLogout = () => {
+    // Clear user data from localStorage and state
+    localStorage.removeItem("user");
+    setUserEmail(""); // Clear user email from state
+    router.push("/login"); // Redirect to login page
+  };
+
+  // Render main layout if the route is not the root
+  if (router.pathname === "/") {
     return <main>{children}</main>;
   }
 
   return (
     <>
-      <AppBar position="sticky" sx={{ backgroundColor: "rgba(255, 111, 105, 0.7)" }} >
+      <AppBar position="sticky" sx={{ backgroundColor: "rgba(255, 111, 105, 0.7)" }}>
         <Toolbar>
-          {/* <Link href={"/"}>
-            <FunctionsIcon sx={{ color: "#96ceb4" }} fontSize="large" />
-          </Link> */}
+          {/* Application Name or Logo */}
           <Typography
             variant="body1"
             sx={{
@@ -39,17 +53,39 @@ const NavigationLayout = ({ children }) => {
               color: "#ffffff",
               padding: "0 10px",
               fontFamily: "Prompt",
-            }}>
+            }}
+          >
             {/* {appName} */}
+            TruckTruck
           </Typography>
+
+          {/* Navigation Links */}
           <NavigationLink href="/Restaurant" label="Restaurant" />
-          <NavigationLink href="/test" label="test" />
           <div style={{ flexGrow: 1 }} />
+
+          {/* User Email and Logout Button */}
+          {userEmail ? (
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Typography variant="body1" sx={{ color: "#ffffff", marginRight: "10px" }}>
+                {userEmail}
+              </Typography>
+              <Button color="inherit" onClick={handleLogout}>
+                Logout
+              </Button>
+            </Box>
+          ) : (
+            <Button color="inherit" onClick={() => router.push("/login")}>
+              Login
+            </Button>
+          )}
+
+          {/* Modified Profile Button with Icon to redirect to /test */}
           <Button
-            color="#ffffff"
+            color="inherit"
             onClick={() => {
-              router.push("/page2");
-            }}>
+              router.push("/test");
+            }}
+          >
             <PersonIcon />
           </Button>
         </Toolbar>
@@ -59,6 +95,7 @@ const NavigationLayout = ({ children }) => {
   );
 };
 
+// Component for navigation links
 const NavigationLink = ({ href, label }) => {
   return (
     <Link href={href} style={{ textDecoration: "none" }}>
@@ -67,12 +104,12 @@ const NavigationLink = ({ href, label }) => {
         sx={{
           fontSize: "14px",
           fontWeight: 500,
-          // textTransform: "uppercase",
           color: "#fff",
           padding: "0 10px", // Add padding on left and right
-        }}>
+        }}
+      >
         {label}
-      </Typography>{" "}
+      </Typography>
     </Link>
   );
 };
