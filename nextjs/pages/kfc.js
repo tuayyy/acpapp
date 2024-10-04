@@ -13,6 +13,7 @@ import {
   IconButton,
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info'; // Import InfoIcon
+import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket';
 
 // Define the styled Item component
 const Item = styled(Paper)(({ theme }) => ({
@@ -48,7 +49,7 @@ export default function Kfc() {
         alt="KFC"
         style={{
           width: '80%',
-          height: '100%',
+          height: '80%',
           objectFit: 'cover',
           position: 'absolute',
           left: 150,
@@ -179,8 +180,17 @@ export default function Kfc() {
               title={item.title || 'KFC Item'}
               subtitle={item.price || 'KFC Menu'}
               actionIcon={
-                <IconButton sx={{ color: 'rgba(255, 255, 255, 0.54)' }} aria-label={`info about ${item.title || 'KFC Item'}`}>
-                  <InfoIcon />
+                <IconButton
+                  sx={{
+                    backgroundColor: '#ffffff', // White background
+                    borderRadius: '50%', // Make it circular
+                    width: '20px', // Fixed width
+                    height: '20px', // Fixed height
+                    '&:hover': { backgroundColor: '#e0e0e0' }, // Slight hover effect
+                  }}
+                  aria-label={`info about ${item.title || 'KFC Item'}`}
+                >
+                  <ShoppingBasketIcon sx={{ color: 'black' }} /> {/* Set the icon color to black */}
                 </IconButton>
               }
             />
