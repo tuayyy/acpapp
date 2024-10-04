@@ -6,3 +6,26 @@ node_modules/
 *.pyc
 *.DS_Store
 .env
+
+# Node.js
+node_modules
+nextjs/.next
+nextjs/.env.local
+.next
+*.log
+
+# Python
+*.pyc
+__pycache__
+*.env
+
+# Docker
+*.pid
+*.log
+docker-compose.override.yaml
+
+# Misc
+.DS_Store
+.idea
+.vscode
+*.swp

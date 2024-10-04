@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
   Stack,
   styled,
   Paper,
-  Rating,
   ImageList,
   ImageListItem,
-  ImageListItemBar,
   ListSubheader,
   IconButton,
+  Badge,
 } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info'; // Import InfoIcon
+import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket'; // Import the basket icon
+import { useRouter } from 'next/router';
 
 // Define the styled Item component
 const Item = styled(Paper)(({ theme }) => ({
@@ -28,9 +28,47 @@ const Item = styled(Paper)(({ theme }) => ({
   }),
 }));
 
-export default function Kfc() {
-  // State to keep track of the rating value
-  const [rating, setRating] = useState(3); // Default rating set to 3
+export default function Mcdonalds() {
+  const [rating, setRating] = useState(4); // Default rating set to 4
+  const [basketCount, setBasketCount] = useState(0); // State for the basket count
+  const router = useRouter(); // Initialize useRouter for navigation
+
+  // Load basket count from localStorage on initial render
+  useEffect(() => {
+    const items = JSON.parse(localStorage.getItem('basketItems')) || [];
+    setBasketCount(items.length);
+
+    // Listen for storage changes
+    const handleStorageChange = (event) => {
+      if (event.key === 'basketUpdated') {
+        // Reload basket count when basketUpdated flag changes
+        const updatedItems = JSON.parse(localStorage.getItem('basketItems')) || [];
+        setBasketCount(updatedItems.length);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Function to handle adding items to the basket
+  const addToBasket = (item) => {
+    const basketItems = JSON.parse(localStorage.getItem('basketItems')) || [];
+    const basketItem = {
+      title: item.title,
+      price: item.price,
+    };
+    basketItems.push(basketItem);
+    localStorage.setItem('basketItems', JSON.stringify(basketItems));
+    setBasketCount(basketItems.length); // Update the basket count
+
+    // Notify other pages that the basket has been updated
+    localStorage.setItem('basketUpdated', Date.now().toString()); // Use timestamp to force change detection
+  };
 
   return (
     <Box
@@ -89,29 +127,12 @@ export default function Kfc() {
           {/* Title Item */}
           <Item>
             <Typography variant="h4" sx={{ textAlign: 'left', fontSize: '24px', fontWeight: 'bold' }}>
-              Mcdonald
+              McDonald's Menu
             </Typography>
           </Item>
 
           {/* Coupon Item */}
           <Item>Coupon: 0</Item>
-
-          {/* Rating Item with Star Rating */}
-          <Item>
-            <Typography variant="body1" sx={{ textAlign: 'left', marginBottom: '8px' }}>
-              Rating:
-            </Typography>
-            <Rating
-              name="kfc-rating"
-              value={rating}
-              onChange={(event, newValue) => {
-                setRating(newValue); // Update the state with the new rating
-              }}
-              precision={0.5} // Allow half-star ratings
-              size="large" // Set the size of the stars
-              sx={{ color: '#ffcc00' }} // Customize the star color
-            />
-          </Item>
         </Stack>
       </Box>
 
@@ -162,7 +183,7 @@ export default function Kfc() {
           <ListSubheader component="div">Menu Gallery</ListSubheader>
         </ImageListItem>
         {itemData.map((item) => (
-          <ImageListItem key={item.img} sx={{ height: '200px' }}> {/* Set a fixed height for all items */}
+          <ImageListItem key={item.img} sx={{ height: '300px' }}> {/* Set a fixed height for all items */}
             <img
               srcSet={`${item.img}?w=248&fit=crop&auto=format&dpr=2 2x`}
               src={`${item.img}?w=248&fit=crop&auto=format`}
@@ -170,46 +191,73 @@ export default function Kfc() {
               loading="lazy"
               style={{
                 width: '100%', // Ensure each image takes the full width of its container
-                height: '100%', // Set each image to have a consistent height
+                height: '70%', // Set each image to have a consistent height
                 objectFit: 'cover', // Maintain aspect ratio and cover the entire space
                 borderRadius: '8px', // Optional: Add rounded corners to the images
               }}
             />
-            <ImageListItemBar
-              title={item.title || 'KFC Item'}
-              subtitle={item.price || 'KFC Menu'}
-              actionIcon={
-                <IconButton sx={{ color: 'rgba(255, 255, 255, 0.54)' }} aria-label={`info about ${item.title || 'KFC Item'}`}>
-                  <InfoIcon />
-                </IconButton>
-              }
-            />
+            {/* Item Name and Price */}
+            <Typography variant="h6" sx={{ marginTop: 1, textAlign: 'center', fontWeight: 'bold' }}>
+              {item.title}
+            </Typography>
+            <Typography variant="body1" sx={{ textAlign: 'center', marginBottom: 1 }}>
+              {item.price}
+            </Typography>
+            {/* Basket Icon Button */}
+            <IconButton
+              onClick={() => addToBasket(item)}
+              color="secondary"
+              sx={{ display: 'block', margin: '0 auto', marginBottom: '10px' }}
+            >
+              <ShoppingBasketIcon />
+            </IconButton>
           </ImageListItem>
         ))}
       </ImageList>
+
+      {/* Go to Basket Button with Badge */}
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 50,
+          right: 50,
+          zIndex: 10,
+        }}
+      >
+        <Badge badgeContent={basketCount} color="error">
+          <IconButton
+            onClick={() => router.push('/basket')}
+            color="primary"
+            sx={{ padding: '20px' }}
+          >
+            <ShoppingBasketIcon sx={{ fontSize: '30px' }} />
+          </IconButton>
+        </Badge>
+      </Box>
     </Box>
   );
 }
 
+// Define menu items for the McDonald's page
 const itemData = [
   {
-    img: 'https://kfcbd.com/storage/products/k8kyCyznKk5bG75XFqUJXsNlO.jpg',
-    title: 'Fried Chicky Chick',
-    price: '2000 dollars',
+    img: 'https://japantoday-asset.scdn3.secure.raxcdn.com/img/store/04/19/5cbd7fc474c436ad61070a41d7134cf32da9/SamuraiMac21_top/_w1700.jpg',
+    title: 'Mac Samurai Burger',
+    price: '9.99 dollars',
   },
   {
-    img: 'https://www.kfc-suisse.ch/fileadmin/_processed_/c/a/csm_webseite_desktop-classic-original_538dd9e0dd.jpg',
-    title: 'Wopper Wopper Wopper',
-    price: '69 dollars',
+    img: 'https://ceres.shop/product_images/uploaded_images/heres-why-mcdonalds-hamburgers-dont-decompose.png',
+    title: 'MacFries',
+    price: '3.49 dollars',
   },
   {
-    img: 'https://media-cldnry.s-nbcnews.com/image/upload/newscms/2019_36/1478740/kfc_fries_international_main.jpg',
-    title: 'Fried Chicky Chick',
-    price: '2000 dollars',
+    img: 'https://www.foodandwine.com/thmb/25k7IDKxNPJ9jHSHgBcLSZ5S_lc=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Spicy-McNuggets-Are-Back-at-McDonalds-FT-BLOG0923-43139bdeb0874fc59af1abd48e5c5e34.jpg',
+    title: 'MacNuggets',
+    price: '5.59 dollars',
   },
   {
-    img: 'https://www.coca-cola.com/content/dam/onexp/sg/en/home-images/media-center/kfc/kfc-5pcs-satay-crunch-buddy-meal-with-coca-cola-zero-sugar-credit-kfc-singapore.png',
-    title: 'Coke',
-    price: '19 dollars',
+    img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmZwiF8r8phQciWpMX5qc5F1VTtuBJL0IDKA&s',
+    title: 'MacCoca Cola',
+    price: '2.19 dollars',
   },
 ];
