@@ -1,4 +1,5 @@
 // basket.js
+
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, List, ListItem, ListItemText, Button, IconButton, Divider } from '@mui/material';
 import { useRouter } from 'next/router';
@@ -7,21 +8,20 @@ import RemoveIcon from '@mui/icons-material/Remove';
 
 export default function Basket() {
   const [basketItems, setBasketItems] = useState([]);
-  const [totalCost, setTotalCost] = useState(0); // State for total cost
+  const [totalCost, setTotalCost] = useState(0);
   const router = useRouter();
 
-  // Function to load basket items from localStorage and group them by title
+  // Load basket items from localStorage and group them
   const loadBasketItems = () => {
     const items = JSON.parse(localStorage.getItem('basketItems')) || [];
     const groupedItems = groupItems(items);
     setBasketItems(groupedItems);
 
-    // Calculate total cost
     const total = groupedItems.reduce((acc, item) => {
-      const price = parseFloat(item.price.replace('$', '')); // Remove '$' and convert to number
+      const price = parseFloat(item.price.replace('$', ''));
       return acc + price * item.quantity;
     }, 0);
-    setTotalCost(total); // Update total cost state
+    setTotalCost(total);
   };
 
   // Group items by title and calculate quantity
@@ -39,25 +39,18 @@ export default function Basket() {
   };
 
   useEffect(() => {
-    // Initial load of basket items and cost
     loadBasketItems();
 
-    // Add an event listener for storage changes
     const handleStorageChange = (event) => {
       if (event.key === 'basketItems') {
-        loadBasketItems(); // Reload items and cost when localStorage is updated
+        loadBasketItems();
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
-
-    // Cleanup event listener on component unmount
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Increase item quantity and update localStorage
   const increaseQuantity = (title) => {
     const updatedItems = basketItems.map((item) => {
       if (item.title === title) {
@@ -68,7 +61,6 @@ export default function Basket() {
     updateBasket(updatedItems);
   };
 
-  // Decrease item quantity and update localStorage
   const decreaseQuantity = (title) => {
     const updatedItems = basketItems
       .map((item) => {
@@ -77,26 +69,20 @@ export default function Basket() {
         }
         return item;
       })
-      .filter((item) => item.quantity > 0); // Remove items with quantity 0
+      .filter((item) => item.quantity > 0);
     updateBasket(updatedItems);
   };
 
-  // Update basket in state and localStorage
   const updateBasket = (items) => {
     setBasketItems(items);
     localStorage.setItem('basketItems', JSON.stringify(flattenItems(items)));
     calculateTotalCost(items);
-
-    // Notify other pages that the basket has been updated
-    localStorage.setItem('basketUpdated', Date.now().toString()); // Use timestamp to force change detection
   };
 
-  // Flatten grouped items to save in localStorage
   const flattenItems = (items) => {
     return items.flatMap((item) => Array(item.quantity).fill({ title: item.title, price: item.price }));
   };
 
-  // Calculate total cost based on basket items
   const calculateTotalCost = (items) => {
     const total = items.reduce((acc, item) => {
       const price = parseFloat(item.price.replace('$', ''));
@@ -105,36 +91,56 @@ export default function Basket() {
     setTotalCost(total);
   };
 
-  // Clear Basket function
   const clearBasket = () => {
-    setBasketItems([]); // Clear state
-    setTotalCost(0); // Clear total cost
-    localStorage.removeItem('basketItems'); // Remove from local storage
+    setBasketItems([]);
+    setTotalCost(0);
+    localStorage.removeItem('basketItems');
+  };
 
-    // Set basketUpdated flag to indicate changes
-    localStorage.setItem('basketUpdated', Date.now().toString()); // Use timestamp to force change detection
+  // Function to submit the order to the backend
+  const submitOrder = async () => {
+    try {
+      const restaurantId = 1; // Assuming all orders are from KFC with restaurant ID 1
+      for (const item of basketItems) {
+        const response = await fetch('http://localhost:8000/api/add_order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            restaurant_id: restaurantId,
+            menu_item: item.title,
+            quantity: item.quantity,
+            price: parseFloat(item.price.replace('$', '')),
+            total_price: parseFloat(item.price.replace('$', '')) * item.quantity,
+          }),
+        });
+
+        // Check for response status
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Failed to submit order:", errorData);
+          alert(`Failed to submit order: ${errorData.detail}`);
+          return;
+        }
+
+        const result = await response.json();
+        console.log(result.message);
+      }
+      alert("Order submitted successfully!");
+    } catch (error) {
+      console.error("Failed to submit order:", error);
+      alert("Failed to submit order. Please try again.");
+    }
   };
 
   return (
     <Box sx={{ padding: '20px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       <Typography variant="h4" sx={{ marginBottom: '20px' }}>Basket</Typography>
-
-      {/* Display total item count */}
-      <Typography variant="h6" sx={{ marginBottom: '10px' }}>
-        Total Unique Items: {basketItems.length}
-      </Typography>
-
-      {/* Display basket items */}
+      <Typography variant="h6" sx={{ marginBottom: '10px' }}>Total Unique Items: {basketItems.length}</Typography>
       <List>
         {basketItems.length > 0 ? (
           basketItems.map((item, index) => (
             <ListItem key={index} sx={{ backgroundColor: '#ffffff', marginBottom: '10px', borderRadius: '4px' }}>
-              {/* Display the title, price, and quantity */}
-              <ListItemText
-                primary={`${item.title} - $${item.price}`}
-                secondary={`Quantity: ${item.quantity}`}
-              />
-              {/* Increase and Decrease Buttons */}
+              <ListItemText primary={`${item.title} - ${item.price}`} secondary={`Quantity: ${item.quantity}`} />
               <IconButton onClick={() => decreaseQuantity(item.title)} aria-label="remove">
                 <RemoveIcon />
               </IconButton>
@@ -148,28 +154,23 @@ export default function Basket() {
           <Typography variant="body1">No items in the basket.</Typography>
         )}
       </List>
-
-      {/* Divider for better separation */}
       <Divider sx={{ marginY: 2 }} />
-
-      {/* Display total cost */}
       {basketItems.length > 0 && (
-        <Typography variant="h6" sx={{ marginBottom: '20px' }}>
-          Total Payment: ${totalCost.toFixed(2)}
-        </Typography>
+        <Typography variant="h6" sx={{ marginBottom: '20px' }}>Total Payment: ${totalCost.toFixed(2)}</Typography>
       )}
-
-      {/* Clear Basket button */}
       {basketItems.length > 0 && (
         <Button variant="contained" color="secondary" onClick={clearBasket} sx={{ marginTop: '20px' }}>
           Clear Basket
         </Button>
       )}
-
-      {/* Back to Home button */}
       <Button variant="contained" color="primary" onClick={() => router.push('/')} sx={{ marginTop: '20px', marginLeft: '10px' }}>
         Back to Home
       </Button>
+      {basketItems.length > 0 && (
+        <Button variant="contained" color="primary" onClick={submitOrder} sx={{ marginTop: '20px', marginLeft: '10px' }}>
+          Submit Order
+        </Button>
+      )}
     </Box>
   );
 }

@@ -1,27 +1,30 @@
 from databases import Database
+import asyncpg
 
+import asyncpg
 
+# Database connection details
 POSTGRES_USER = "temp"
 POSTGRES_PASSWORD = "temp"
 POSTGRES_DB = "advcompro"
 POSTGRES_HOST = "db"
+POSTGRES_PORT = 5432  # Ensure this is set correctly
 
-
-DATABASE_URL = f'postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}/{POSTGRES_DB}'
-
-
-database = Database(DATABASE_URL)
-
-
+# Function to connect to the database
 async def connect_db():
-   await database.connect()
-   print("Database connected")
-
-
-async def disconnect_db():
-   await database.disconnect()
-   print("Database disconnected")
-
+    try:
+        conn = await asyncpg.connect(
+            user=POSTGRES_USER,
+            password=POSTGRES_PASSWORD,
+            database=POSTGRES_DB,
+            host=POSTGRES_HOST,
+            port=POSTGRES_PORT
+        )
+        print("Database connection successful.")
+        return conn
+    except Exception as e:
+        print(f"Failed to connect to database: {e}")
+        return None
 
 # Function to insert a new user into the users table
 async def insert_user(username: str, password_hash: str, email: str):
