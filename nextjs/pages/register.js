@@ -58,10 +58,10 @@ export default function AuthPage() {
       setOpenSnackbar(true);
 
       // Store the logged-in user data in localStorage
-      localStorage.setItem("user", JSON.stringify({ username: data.username }));
+      localStorage.setItem("user", JSON.stringify({ username: loginUsername }));
 
-      // Redirect to the Test page or update the UI accordingly
-      window.location.href = "/Restaurant"; // Assuming you want to navigate to the Test page after login
+      // Redirect to the profile page or update the UI accordingly
+      window.location.href = "/profile"; // Redirect to profile page after login
     } catch (error) {
       setSnackbarMessage(error.message);
       setSnackbarSeverity("error");
@@ -100,6 +100,12 @@ export default function AuthPage() {
       setSnackbarMessage("Registration successful!");
       setSnackbarSeverity("success");
       setOpenSnackbar(true);
+
+      // Store the registered user data in localStorage
+      localStorage.setItem("user", JSON.stringify({ username: registerUsername }));
+
+      // Redirect to the profile page after successful registration
+      window.location.href = "/profile";
     } catch (error) {
       setSnackbarMessage(error.message);
       setSnackbarSeverity("error");

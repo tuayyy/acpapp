@@ -1,5 +1,3 @@
-// basket.js
-
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, List, ListItem, ListItemText, Button, IconButton, Divider } from '@mui/material';
 import { useRouter } from 'next/router';
@@ -100,8 +98,23 @@ export default function Basket() {
   // Function to submit the order to the backend
   const submitOrder = async () => {
     try {
-      const restaurantId = 1; // Assuming all orders are from KFC with restaurant ID 1
+      // Map restaurant titles to their corresponding restaurant IDs
+      const restaurantIds = {
+        'KFC': 1, // KFC has restaurant_id = 1
+        'McDonald': 2, // McDonald has restaurant_id = 2
+      };
+
+      // Iterate over basket items and submit orders based on their restaurant
       for (const item of basketItems) {
+        let restaurantId;
+
+        // Determine the restaurant ID based on the food item's name
+        if (item.title.includes('Mac') || item.title.includes('Mc')) {
+          restaurantId = restaurantIds['McDonald'];
+        } else {
+          restaurantId = restaurantIds['KFC'];
+        }
+
         const response = await fetch('http://localhost:8000/api/add_order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

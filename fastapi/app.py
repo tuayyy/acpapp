@@ -35,6 +35,16 @@ class ClientLogin(BaseModel):
     username: str
     password_hash: str
 
+class FoodOrder(BaseModel):
+    restaurant_id: int
+    menu_item: str
+    quantity: int
+    price: float
+    total_price: float
+
+
+
+
 # Endpoint to handle McDonald's ratings
 @app.post("/api/submit_mcdonald_rating")
 async def submit_mcdonald_rating(data: McDonaldRatingData):
@@ -63,6 +73,7 @@ async def submit_mcdonald_rating(data: McDonaldRatingData):
     except Exception as e:
         print(f"Error submitting McDonald's rating: {e}")
         raise HTTPException(status_code=500, detail="Failed to submit McDonald's rating.")
+
 
 # Endpoint to handle KFC ratings
 @app.post("/api/submit_kfc_rating")
@@ -100,6 +111,36 @@ class FoodInsert(BaseModel):
     quantity: int
     price: float
     total_price: float
+    
+@app.get("/api/profile/{username}")
+async def get_profile(username: str):
+    print(f"Received request for profile of: {username}")  # Debugging statement
+    try:
+        conn = await connect_db()
+        if conn is None:
+            raise HTTPException(status_code=500, detail="Database connection failed")
+
+        # Query to get the username and email from the database based on the provided username
+        query = "SELECT username, email FROM client WHERE username = $1;"
+        profile_data = await conn.fetchrow(query, username)
+        print(f"Profile data fetched: {profile_data}")  # Debugging statement
+
+        if profile_data:
+            return {
+                "username": profile_data['username'],
+                "email": profile_data['email']
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Profile not found")
+
+    except Exception as e:
+        print(f"Error fetching profile: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch profile")
+
+    finally:
+        if conn:
+            await conn.close()
+
 @app.post("/api/register")
 async def register_client(client: ClientRegistration):
     """
