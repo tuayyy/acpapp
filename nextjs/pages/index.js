@@ -4,23 +4,25 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 
 export default function Test() {
-  const [loginEmail, setLoginEmail] = useState("");
+  // State variables for login
+  const [loginUsername, setLoginUsername] = useState(""); // Use `loginUsername` instead of `loginEmail`
   const [loginPassword, setLoginPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [loginSuccessMessage, setLoginSuccessMessage] = useState(""); // State to store success message
+  const [loginSuccessMessage, setLoginSuccessMessage] = useState("");
+
   const router = useRouter();
 
   // Function to handle login submission
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("/api/users/login", {
+      const response = await fetch("/api/login", { // Updated to use the correct login endpoint
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: loginEmail,
+          username: loginUsername, // Changed to use `username`
           password_hash: loginPassword,
         }),
       });
@@ -31,10 +33,10 @@ export default function Test() {
       }
 
       const data = await response.json();
-      setLoginSuccessMessage(`Login successful! ${data.email}`); // Set success message with email
+      setLoginSuccessMessage(`Login successful! ${data.username}`); // Set success message with username
 
       // Store the logged-in user data in localStorage
-      localStorage.setItem("user", JSON.stringify({ email: data.email }));
+      localStorage.setItem("user", JSON.stringify({ username: data.username }));
 
       // Redirect to /Restaurant page after successful login
       router.push("/Restaurant");
@@ -51,7 +53,7 @@ export default function Test() {
         alignItems: "flex-start",
         height: "100vh",
         pt: 4,
-        bgcolor: "#F9E79F", // Set a light yellow background color
+        bgcolor: "#F9E79F", // Set a light yellow background color to match the previous UI
       }}
     >
       <Box
@@ -79,8 +81,8 @@ export default function Test() {
             fontStyle="italic"
             sx={{
               color: "#ff6f69",
-              position: "absolute", // Position it on top
-              zIndex: 2, // Higher zIndex to stay on top
+              position: "absolute",
+              zIndex: 2,
               top: -40,
               left: "-50px",
               right: 0,
@@ -100,17 +102,15 @@ export default function Test() {
             fontFamily="fantasy"
             fontStyle="italic"
             sx={{
-              color: "	#ffcc5c", // Transparent text so only border shows
-
-              position: "absolute", // Position it on top
-              zIndex: 1, // Lower zIndex to stay behind the first text
+              color: "#ffcc5c",
+              position: "absolute",
+              zIndex: 1,
               top: -40,
               left: "-20px",
               right: 0,
               bottom: 0,
               justifyContent: "center",
-
-              transform: "translate(-70%, -50%)", // Adjust for centering
+              transform: "translate(-70%, -50%)",
               display: "flex",
             }}
           >
@@ -123,8 +123,8 @@ export default function Test() {
             fontStyle="italic"
             sx={{
               color: "#86c5a6",
-              position: "absolute", // Position it on top
-              zIndex: 2, // Higher zIndex to stay on top
+              position: "absolute",
+              zIndex: 2,
               top: 40,
               left: "25px",
               right: 0,
@@ -144,10 +144,9 @@ export default function Test() {
             fontFamily="fantasy"
             fontStyle="italic"
             sx={{
-              color: "	#ffcc5c", // Transparent text so only border shows
-
-              position: "absolute", // Position it on top
-              zIndex: 1, // Lower zIndex to stay behind the first text
+              color: "#ffcc5c",
+              position: "absolute",
+              zIndex: 1,
               top: 0,
               left: "25px",
               right: 0,
@@ -165,13 +164,13 @@ export default function Test() {
               color="#ff6f69"
               sx={{ position: "absolute", top: 200, left: "-20px", fontWeight: "BOLD" }}
             >
-              Email
+              Username
             </Typography>
             <TextField
               height="120vh"
               variant="standard"
-              value={loginEmail}
-              onChange={(e) => setLoginEmail(e.target.value)}
+              value={loginUsername}
+              onChange={(e) => setLoginUsername(e.target.value)} // Updated to handle `username`
               sx={{
                 position: "absolute",
                 width: "45ch",
@@ -218,6 +217,7 @@ export default function Test() {
             </Button>
           </form>
 
+          {/* Register Button */}
           <Button variant="contained" sx={{ position: "absolute", top: 450, left: "-10px", bgcolor: "#96ceb4" }}>
             <Link href="/register">REGISTER</Link>
           </Button>

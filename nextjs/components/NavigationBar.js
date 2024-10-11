@@ -32,7 +32,7 @@ const NavigationLayout = ({ children }) => {
     // Clear user data from localStorage and state
     localStorage.removeItem("user");
     setUserEmail(""); // Clear user email from state
-    router.push("/login"); // Redirect to login page
+    router.push("/"); // Redirect to login page
   };
 
   // Render main layout if the route is not the root
@@ -74,7 +74,7 @@ const NavigationLayout = ({ children }) => {
               </Button>
             </Box>
           ) : (
-            <Button color="inherit" onClick={() => router.push("/login")}>
+            <Button color="inherit" onClick={() => router.push("/")}>
               Login
             </Button>
           )}

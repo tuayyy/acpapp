@@ -1,5 +1,3 @@
-# app.py
-
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,6 +22,18 @@ class FoodInsert(BaseModel):
     quantity: int
     price: float
     total_price: float
+
+# Define the Pydantic model for incoming client registration data
+class ClientRegistration(BaseModel):
+    username: str
+    password_hash: str
+    email: str = None  # Email is optional
+
+# Define the Pydantic model for login data
+class ClientLogin(BaseModel):
+    username: str
+    password_hash: str
+
 
 @app.post("/api/add_order")
 async def add_order(order: FoodInsert):
@@ -73,3 +83,78 @@ async def add_order(order: FoodInsert):
     except Exception as e:
         print(f"Error adding order: {e}")
         raise HTTPException(status_code=400, detail=f"Failed to add order: {e}")
+
+
+@app.post("/api/register")
+async def register_client(client: ClientRegistration):
+    """
+    Endpoint to register a new client.
+    Inserts the username, password_hash, and email into the client table.
+    """
+    try:
+        # Establish connection to the database
+        conn = await connect_db()
+        if conn is None:
+            raise HTTPException(status_code=500, detail="Database connection failed")
+
+        # Check if the username already exists in the client table
+        existing_client = await conn.fetchrow(
+            "SELECT * FROM client WHERE username = $1",
+            client.username
+        )
+
+        if existing_client:
+            raise HTTPException(status_code=400, detail="Username already exists")
+
+        # Insert the new client record into the client table
+        await conn.execute(
+            """
+            INSERT INTO client (username, password_hash, email)
+            VALUES ($1, $2, $3)
+            """,
+            client.username, client.password_hash, client.email
+        )
+
+        # Close the database connection
+        await conn.close()
+        return {"message": f"Client '{client.username}' registered successfully"}
+
+    except Exception as e:
+        print(f"Error registering client: {e}")
+        raise HTTPException(status_code=400, detail=f"Failed to register client: {e}")
+
+
+@app.post("/api/login")
+async def login_client(client: ClientLogin):
+    """
+    Endpoint to login a client.
+    Validates the username and password_hash against the client table.
+    """
+    try:
+        # Establish connection to the database
+        conn = await connect_db()
+        if conn is None:
+            raise HTTPException(status_code=500, detail="Database connection failed")
+
+        # Check if the username exists and the password matches
+        existing_client = await conn.fetchrow(
+            "SELECT * FROM client WHERE username = $1",
+            client.username
+        )
+
+        if not existing_client or existing_client['password_hash'] != client.password_hash:
+            raise HTTPException(status_code=400, detail="Invalid username or password")
+
+        # Close the database connection
+        await conn.close()
+        return {"message": f"Client '{client.username}' logged in successfully"}
+
+    except Exception as e:
+        print(f"Error logging in client: {e}")
+        raise HTTPException(status_code=400, detail=f"Failed to log in: {e}")
+
+
+# Run the FastAPI app
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -173,8 +173,8 @@ export default function Basket() {
           Clear Basket
         </Button>
       )}
-      <Button variant="contained" color="primary" onClick={() => router.push('/')} sx={{ marginTop: '20px', marginLeft: '10px' }}>
-        Back to Home
+      <Button variant="contained" color="primary" onClick={() => router.push('/Restaurant')} sx={{ marginTop: '20px', marginLeft: '10px' }}>
+        Back to Restaurant
       </Button>
       {basketItems.length > 0 && (
         <Button variant="contained" color="primary" onClick={submitOrder} sx={{ marginTop: '20px', marginLeft: '10px' }}>
