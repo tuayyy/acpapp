@@ -5,12 +5,39 @@ import {
   Typography,
   Button,
   Box,
+  IconButton,
 } from "@mui/material";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import PersonIcon from "@mui/icons-material/Person";
+import ShoppingBasketIcon from "@mui/icons-material/ShoppingBasket"; // Import the basket icon
 import useBearStore from "@/store/useBearStore";
 import { useEffect, useState } from "react";
+import { styled } from '@mui/material/styles'; // Import styled
+
+// Styled Button for the Restaurant link
+const StyledButton = styled(Button)(({ theme }) => ({
+  fontSize: '16px', // Set a smaller font size
+  fontWeight: 600, // Make text bolder
+  padding: '8px 16px', // Adjust padding for a smaller button
+  margin: '0 10px', // Add margin
+  borderRadius: '30px', // Rounded corners
+  color: '#ffffff',
+  backgroundColor: '#ff5e15', // Set a custom background color
+  '&:hover': {
+    backgroundColor: '#e55e15', // Darker shade on hover
+  },
+}));
+
+// Styled Typography for the App Name
+const AppName = styled(Typography)(({ theme }) => ({
+  fontSize: "24px", // Increased font size
+  fontWeight: 700, // Make it bold
+  color: "#ffffff",
+  padding: "0 10px",
+  fontFamily: "Prompt",
+  textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)", // Add a subtle shadow
+}));
 
 const NavigationLayout = ({ children }) => {
   const router = useRouter();
@@ -32,7 +59,7 @@ const NavigationLayout = ({ children }) => {
     // Clear user data from localStorage and state
     localStorage.removeItem("user");
     setUserEmail(""); // Clear user email from state
-    router.push("/login"); // Redirect to login page
+    router.push("/"); // Redirect to login page
   };
 
   // Render main layout if the route is not the root
@@ -45,23 +72,23 @@ const NavigationLayout = ({ children }) => {
       <AppBar position="sticky" sx={{ backgroundColor: "rgba(255, 111, 105, 0.7)" }}>
         <Toolbar>
           {/* Application Name or Logo */}
-          <Typography
-            variant="body1"
-            sx={{
-              fontSize: "22px",
-              fontWeight: 500,
-              color: "#ffffff",
-              padding: "0 10px",
-              fontFamily: "Prompt",
-            }}
-          >
-            {/* {appName} */}
-            TruckTruck
-          </Typography>
+          <AppName>
+            Truck Truck
+          </AppName>
 
-          {/* Navigation Links */}
-          <NavigationLink href="/Restaurant" label="Restaurant" />
           <div style={{ flexGrow: 1 }} />
+
+          {/* Centered Navigation Links */}
+          <Link href="/Restaurant" passHref>
+            <StyledButton>Restaurant</StyledButton>
+          </Link>
+
+          {/* Basket Icon with Link */}
+          <Link href="/basket">
+            <IconButton color="inherit">
+              <ShoppingBasketIcon />
+            </IconButton>
+          </Link>
 
           {/* User Email and Logout Button */}
           {userEmail ? (
@@ -74,16 +101,16 @@ const NavigationLayout = ({ children }) => {
               </Button>
             </Box>
           ) : (
-            <Button color="inherit" onClick={() => router.push("/login")}>
+            <Button color="inherit" onClick={() => router.push("/")}>
               Login
             </Button>
           )}
 
-          {/* Modified Profile Button with Icon to redirect to /test */}
+          {/* Profile Button */}
           <Button
             color="inherit"
             onClick={() => {
-              router.push("/test");
+              router.push("/profile");
             }}
           >
             <PersonIcon />
