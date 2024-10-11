@@ -9,11 +9,15 @@ import RemoveIcon from '@mui/icons-material/Remove';
 export default function Basket() {
   const [basketItems, setBasketItems] = useState([]);
   const [totalCost, setTotalCost] = useState(0);
+  const [restaurantId, setRestaurantId] = useState(null); // State for restaurant_id
   const router = useRouter();
 
-  // Load basket items from localStorage and group them
+  // Load basket items and set restaurant_id based on localStorage
   const loadBasketItems = () => {
     const items = JSON.parse(localStorage.getItem('basketItems')) || [];
+    const storedRestaurantId = localStorage.getItem('restaurant_id'); // Retrieve restaurant_id from localStorage
+    setRestaurantId(storedRestaurantId ? parseInt(storedRestaurantId, 10) : null);
+
     const groupedItems = groupItems(items);
     setBasketItems(groupedItems);
 
@@ -42,7 +46,7 @@ export default function Basket() {
     loadBasketItems();
 
     const handleStorageChange = (event) => {
-      if (event.key === 'basketItems') {
+      if (event.key === 'basketItems' || event.key === 'restaurant_id') {
         loadBasketItems();
       }
     };
@@ -95,18 +99,23 @@ export default function Basket() {
     setBasketItems([]);
     setTotalCost(0);
     localStorage.removeItem('basketItems');
+    localStorage.removeItem('restaurant_id'); // Clear restaurant_id on basket clear
   };
 
   // Function to submit the order to the backend
   const submitOrder = async () => {
     try {
-      const restaurantId = 1; // Assuming all orders are from KFC with restaurant ID 1
+      if (!restaurantId) {
+        alert("Unknown restaurant. Cannot submit order.");
+        return;
+      }
+
       for (const item of basketItems) {
         const response = await fetch('http://localhost:8000/api/add_order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            restaurant_id: restaurantId,
+            restaurant_id: restaurantId,  // Use the detected restaurant_id
             menu_item: item.title,
             quantity: item.quantity,
             price: parseFloat(item.price.replace('$', '')),
@@ -135,6 +144,7 @@ export default function Basket() {
   return (
     <Box sx={{ padding: '20px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       <Typography variant="h4" sx={{ marginBottom: '20px' }}>Basket</Typography>
+      <Typography variant="h6" sx={{ marginBottom: '10px' }}>Restaurant ID: {restaurantId}</Typography> {/* Display Restaurant ID */}
       <Typography variant="h6" sx={{ marginBottom: '10px' }}>Total Unique Items: {basketItems.length}</Typography>
       <List>
         {basketItems.length > 0 ? (
