@@ -13,19 +13,19 @@ import PersonIcon from "@mui/icons-material/Person";
 import ShoppingBasketIcon from "@mui/icons-material/ShoppingBasket"; // Import the basket icon
 import useBearStore from "@/store/useBearStore";
 import { useEffect, useState } from "react";
-import { styled } from '@mui/material/styles'; // Import styled
+import { styled } from "@mui/material/styles"; // Import styled
 
 // Styled Button for the Restaurant link
 const StyledButton = styled(Button)(({ theme }) => ({
-  fontSize: '16px', // Set a smaller font size
+  fontSize: "16px", // Set a smaller font size
   fontWeight: 600, // Make text bolder
-  padding: '8px 16px', // Adjust padding for a smaller button
-  margin: '0 10px', // Add margin
-  borderRadius: '30px', // Rounded corners
-  color: '#ffffff',
-  backgroundColor: '#ff5e15', // Set a custom background color
-  '&:hover': {
-    backgroundColor: '#e55e15', // Darker shade on hover
+  padding: "8px 16px", // Adjust padding for a smaller button
+  margin: "0 10px", // Add margin
+  borderRadius: "30px", // Rounded corners
+  color: "#ffffff",
+  backgroundColor: "#ff5e15", // Set a custom background color
+  "&:hover": {
+    backgroundColor: "#e55e15", // Darker shade on hover
   },
 }));
 
@@ -83,6 +83,11 @@ const NavigationLayout = ({ children }) => {
             <StyledButton>Restaurant</StyledButton>
           </Link>
 
+          {/* Dashboard Navigation Button */}
+          <Link href="/dashboard" passHref>
+            <StyledButton>Dashboard</StyledButton>
+          </Link>
+
           {/* Basket Icon with Link */}
           <Link href="/basket">
             <IconButton color="inherit">
@@ -101,8 +106,8 @@ const NavigationLayout = ({ children }) => {
               </Button>
             </Box>
           ) : (
-            <Button color="inherit" onClick={() => router.push("c/")}>
-              Logout
+            <Button color="inherit" onClick={() => router.push("/login")}>
+              Login
             </Button>
           )}
 
