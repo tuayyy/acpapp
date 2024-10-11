@@ -101,8 +101,8 @@ const NavigationLayout = ({ children }) => {
               </Button>
             </Box>
           ) : (
-            <Button color="inherit" onClick={() => router.push("/")}>
-              Login
+            <Button color="inherit" onClick={() => router.push("c/")}>
+              Logout
             </Button>
           )}
 

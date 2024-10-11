@@ -35,6 +35,55 @@ class ClientLogin(BaseModel):
     username: str
     password_hash: str
 
+# Define the Pydantic model for incoming order data
+class FoodInsert(BaseModel):
+    restaurant_id: int
+    menu_item: str
+    quantity: int
+    price: float
+    total_price: float
+
+# New Pydantic model to define the structure of the response for food orders
+class FoodOrder(BaseModel):
+    id: int
+    restaurant_id: int
+    menu_item: str
+    quantity: int
+    price: float
+    total_price: float
+
+# Endpoint to read all data from the food_orders table
+# FastAPI endpoint to read food orders from the database
+@app.get("/api/food_orders")
+async def read_food_orders():
+    """
+    Endpoint to read data from the food_orders table.
+    """
+    try:
+        # Establish connection to the database
+        conn = await connect_db()
+        if conn is None:
+            raise HTTPException(status_code=500, detail="Database connection failed")
+
+        # Fetch all rows from the food_orders table
+        rows = await conn.fetch("SELECT * FROM food_orders;")
+        print("Fetched rows:", rows)  # Debugging statement to check fetched data
+
+        # Convert rows to list of dictionaries
+        orders = [dict(row) for row in rows]
+        print("Formatted orders:", orders)  # Debugging statement to check formatted data
+
+        # Close the database connection
+        await conn.close()
+
+        # Return the orders as JSON response
+        return {"food_orders": orders}
+
+    except Exception as e:
+        print(f"Error reading from food_orders table: {e}")
+        raise HTTPException(status_code=500, detail="Failed to read from food_orders table.")
+
+
 # Endpoint to handle McDonald's ratings
 @app.post("/api/submit_mcdonald_rating")
 async def submit_mcdonald_rating(data: McDonaldRatingData):
@@ -93,13 +142,7 @@ async def submit_kfc_rating(data: KfcRatingData):
         print(f"Error submitting KFC rating: {e}")
         raise HTTPException(status_code=500, detail="Failed to submit KFC rating.")
 
-# Define the Pydantic model for incoming order data
-class FoodInsert(BaseModel):
-    restaurant_id: int
-    menu_item: str
-    quantity: int
-    price: float
-    total_price: float
+# Endpoint to register a new client
 @app.post("/api/register")
 async def register_client(client: ClientRegistration):
     """
@@ -138,7 +181,7 @@ async def register_client(client: ClientRegistration):
         print(f"Error registering client: {e}")
         raise HTTPException(status_code=400, detail=f"Failed to register client: {e}")
 
-
+# Endpoint to login a client
 @app.post("/api/login")
 async def login_client(client: ClientLogin):
     """
@@ -167,7 +210,8 @@ async def login_client(client: ClientLogin):
     except Exception as e:
         print(f"Error logging in client: {e}")
         raise HTTPException(status_code=400, detail=f"Failed to log in: {e}")
-    
+
+# Endpoint to add or update a food order
 @app.post("/api/add_order")
 async def add_order(order: FoodInsert):
     """

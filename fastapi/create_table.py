@@ -1,13 +1,12 @@
-# create_table.py
-
 import asyncpg
 
 # Database connection details
 POSTGRES_USER = "temp"
 POSTGRES_PASSWORD = "temp"
 POSTGRES_DB = "advcompro"
-POSTGRES_HOST = "db"
+POSTGRES_HOST = "localhost"  # Assuming the host is localhost
 POSTGRES_PORT = 5432
+
 # Function to create the client table
 async def create_client_table():
     conn = await asyncpg.connect(
@@ -34,18 +33,14 @@ async def create_client_table():
         await conn.close()
 
 
-# Run the create_client_table function for testing
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(create_client_table())
-    
+# Function to create the food_orders table
 async def create_table():
     conn = await asyncpg.connect(
-        user="temp",
-        password="temp",
-        database="advcompro",
-        host="localhost",
-        port="5432"
+        user=POSTGRES_USER,
+        password=POSTGRES_PASSWORD,
+        database=POSTGRES_DB,
+        host=POSTGRES_HOST,
+        port=POSTGRES_PORT
     )
     try:
         await conn.execute("""
@@ -64,12 +59,37 @@ async def create_table():
     finally:
         await conn.close()
 
-# Run the create_table function
+
+# Function to read data from the food_orders table and return as a dictionary
+async def read_food_orders():
+    conn = await asyncpg.connect(
+        user=POSTGRES_USER,
+        password=POSTGRES_PASSWORD,
+        database=POSTGRES_DB,
+        host=POSTGRES_HOST,
+        port=POSTGRES_PORT
+    )
+    try:
+        # Fetch all rows from the food_orders table
+        rows = await conn.fetch("SELECT * FROM food_orders;")
+        # Convert the rows to a list of dictionaries
+        orders_dict = [dict(row) for row in rows]
+        return orders_dict  # Return the list of dictionaries
+    except Exception as e:
+        print(f"Failed to read from table: {e}")
+        return {}  # Return an empty dictionary in case of an error
+    finally:
+        await conn.close()
+
+
+# Main function to create tables and read data
 if __name__ == "__main__":
     import asyncio
+    # Create the client and food_orders tables
+    asyncio.run(create_client_table())
     asyncio.run(create_table())
 
-# Run the create_client_table function for testing
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(create_client_table())
+    # Read data from the food_orders table and print the dictionary
+    print("Reading data from food_orders table:")
+    orders = asyncio.run(read_food_orders())
+    print(orders)
