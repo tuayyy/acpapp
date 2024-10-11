@@ -12,7 +12,7 @@ import {
   IconButton,
   Badge,
 } from '@mui/material';
-import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket'; // Import the basket icon
+import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket';
 import { useRouter } from 'next/router';
 
 // Define the styled Item component
@@ -31,26 +31,19 @@ const Item = styled(Paper)(({ theme }) => ({
 
 export default function Kfc() {
   const [rating, setRating] = useState(4); // Default rating set to 4
-  const [basketItems, setBasketItems] = useState([]); // State to track the basket items
   const [basketCount, setBasketCount] = useState(0); // State for the basket count
-  const router = useRouter(); // Initialize useRouter for navigation
+  const router = useRouter();
 
-  // Function to load basket items from localStorage and update state
-  const loadBasketItems = () => {
-    const items = JSON.parse(localStorage.getItem('basketItems')) || [];
-    setBasketItems(items); // Set basket items
-    setBasketCount(items.length); // Update basket count based on items length
-  };
-
-  // UseEffect to load basket items on initial render and set up listener for localStorage changes
+  // Load basket count from localStorage on initial render
   useEffect(() => {
-    loadBasketItems();
+    const items = JSON.parse(localStorage.getItem('basketItems')) || [];
+    setBasketCount(items.length);
 
     // Listen for storage changes
     const handleStorageChange = (event) => {
-      if (event.key === 'basketItems') {
-        // Reload basket items when basketItems key changes
-        loadBasketItems();
+      if (event.key === 'basketUpdated') {
+        const updatedItems = JSON.parse(localStorage.getItem('basketItems')) || [];
+        setBasketCount(updatedItems.length);
       }
     };
 
@@ -62,6 +55,37 @@ export default function Kfc() {
     };
   }, []);
 
+  // Function to handle submitting the rating to the backend
+  const submitRating = async (newRating) => {
+    try {
+      const response = await fetch('http://localhost:8000/api/submit_kfc_rating', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          restaurant_name: 'KFC', // Set the restaurant name for KFC ratings
+          rating: newRating,
+        }),
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        console.log(result.message);
+        alert('KFC rating submitted successfully!');
+      } else {
+        alert('Failed to submit rating. Please try again.');
+      }
+    } catch (error) {
+      console.error('Failed to submit rating:', error);
+      alert('Failed to submit rating. Please try again.');
+    }
+  };
+
+  // Handle when the user changes the rating
+  const handleRatingChange = (event, newValue) => {
+    setRating(newValue); // Update the rating state
+    submitRating(newValue); // Submit the new rating
+  };
+
   // Function to handle adding items to the basket
   const addToBasket = (item) => {
     const basketItems = JSON.parse(localStorage.getItem('basketItems')) || [];
@@ -71,11 +95,10 @@ export default function Kfc() {
     };
     basketItems.push(basketItem);
     localStorage.setItem('basketItems', JSON.stringify(basketItems));
-    setBasketItems(basketItems); // Update the basket items state
     setBasketCount(basketItems.length); // Update the basket count
 
     // Notify other pages that the basket has been updated
-    localStorage.setItem('basketUpdated', Date.now().toString()); // Use timestamp to force change detection
+    localStorage.setItem('basketUpdated', Date.now().toString());
   };
 
   return (
@@ -88,7 +111,6 @@ export default function Kfc() {
         backgroundColor: 'transparent',
       }}
     >
-      {/* Image as a background layer */}
       <img
         src="https://www.derwesten.de/wp-content/uploads/sites/8/2023/10/imago0302043723h-e1696481879718.jpg"
         alt="KFC Background"
@@ -102,7 +124,6 @@ export default function Kfc() {
         }}
       />
 
-      {/* Yellow Box positioned on top of the image */}
       <Box
         sx={{
           backgroundColor: 'rgba(255,204,92,0.8)',
@@ -112,13 +133,13 @@ export default function Kfc() {
           justifyContent: 'center',
           alignItems: 'center',
           position: 'absolute',
-          top: 400, // Set top position of the yellow box
+          top: 400,
           left: '50%',
           transform: 'translate(-50%, -50%)',
           zIndex: 1,
           borderRadius: 10,
           boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.2)',
-          padding: 3, // Add padding for inner spacing
+          padding: 3,
         }}
       >
         <Stack
@@ -142,20 +163,18 @@ export default function Kfc() {
           {/* Coupon Item */}
           <Item>Coupon: 0</Item>
 
-          {/* Rating Item with Star Rating */}
+          {/* Rating Item */}
           <Item>
-            <Typography variant="body1" sx={{ textAlign: 'left', marginBottom: '8px' }}>
-              Rating:
+            <Typography variant="h6" sx={{ textAlign: 'left', fontSize: '18px' }}>
+              Rate Us:
             </Typography>
             <Rating
-              name="kfc-rating"
+              name="user-rating"
               value={rating}
-              onChange={(event, newValue) => {
-                setRating(newValue); // Update the state with the new rating
-              }}
-              precision={0.5} // Allow half-star ratings
-              size="large" // Set the size of the stars
-              sx={{ color: '#ffcc00' }} // Customize the star color
+              onChange={handleRatingChange}
+              precision={0.5}
+              max={5}
+              size="large"
             />
           </Item>
         </Stack>
@@ -165,15 +184,15 @@ export default function Kfc() {
       <Box
         sx={{
           position: 'relative',
-          top: 800, // Move Menu & Prices section closer to the yellow box
+          top: 800,
           left: '50%',
           transform: 'translateX(-50%)',
-          backgroundColor: 'rgba(255,204,92,0.8)', // Set background color
-          width: 300, // Set width of the background box
-          padding: 2, // Add padding for inner spacing
-          borderRadius: 5, // Add rounded corners
-          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.2)', // Add shadow for better visibility
-          zIndex: 2, // Ensure it appears above other elements
+          backgroundColor: 'rgba(255,204,92,0.8)',
+          width: 300,
+          padding: 2,
+          borderRadius: 5,
+          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.2)',
+          zIndex: 2,
         }}
       >
         <Typography
@@ -193,42 +212,40 @@ export default function Kfc() {
           width: 800,
           height: 800,
           position: 'relative',
-          top: 850, // Move Image List section closer to the yellow box and Menu & Prices
+          top: 850,
           left: '50%',
           transform: 'translateX(-50%)',
-          backgroundColor: 'rgba(255, 255, 255, 0.7)', // 70% opaque white background
-          padding: 2, // Optional padding inside the ImageList
-          borderRadius: 5, // Add rounded corners
-          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.2)', // Add shadow for better visibility
+          backgroundColor: 'rgba(255, 255, 255, 0.7)',
+          padding: 2,
+          borderRadius: 5,
+          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.2)',
         }}
-        cols={3} // Set the number of columns to 3 for uniform spacing
-        gap={10} // Set the gap between images
+        cols={3}
+        gap={10}
       >
         <ImageListItem key="Subheader" cols={3} sx={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
           <ListSubheader component="div">Menu Gallery</ListSubheader>
         </ImageListItem>
         {itemData.map((item) => (
-          <ImageListItem key={item.img} sx={{ height: '300px' }}> {/* Set a fixed height for all items */}
+          <ImageListItem key={item.img} sx={{ height: '300px' }}>
             <img
               srcSet={`${item.img}?w=248&fit=crop&auto=format&dpr=2 2x`}
               src={`${item.img}?w=248&fit=crop&auto=format`}
               alt={item.title}
               loading="lazy"
               style={{
-                width: '100%', // Ensure each image takes the full width of its container
-                height: '70%', // Set each image to have a consistent height
-                objectFit: 'cover', // Maintain aspect ratio and cover the entire space
-                borderRadius: '8px', // Optional: Add rounded corners to the images
+                width: '100%',
+                height: '70%',
+                objectFit: 'cover',
+                borderRadius: '8px',
               }}
             />
-            {/* Item Name and Price */}
             <Typography variant="h6" sx={{ marginTop: 1, textAlign: 'center', fontWeight: 'bold' }}>
               {item.title}
             </Typography>
             <Typography variant="body1" sx={{ textAlign: 'center', marginBottom: 1 }}>
               {item.price}
             </Typography>
-            {/* Basket Icon Button */}
             <IconButton
               onClick={() => addToBasket(item)}
               color="secondary"
